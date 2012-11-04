@@ -1,0 +1,27 @@
+#!/bin/sh
+
+status() {
+    echo "svc: status called."
+    exit 0
+}
+
+case "$1" in
+    start)
+        exit 0
+    ;;
+    stop)
+        exit 0
+    ;;
+    promote)
+        exit 0
+    ;;
+    demote)
+        exit 0
+    ;;
+    status)
+        status
+    ;;
+    *)
+        exit 0
+    ;;
+esac

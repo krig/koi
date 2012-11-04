@@ -1,0 +1,13 @@
+#!/bin/sh
+
+SVCNAME="$0"
+PARAM="$1"
+
+. ./test_shared
+
+if [[ $PARAM = "stop" ]]
+then
+    f__k_it
+else
+    handle $PARAM
+fi

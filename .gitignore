@@ -1,0 +1,12 @@
+build-*/**
+.lock-waf*
+.waf-*
+.#*
+xcuserdata
+*.o
+*.pyc
+.aapdir/**
+bin/**
+attic/**
+.DS_Store
+

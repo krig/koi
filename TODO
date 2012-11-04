@@ -1,0 +1,9 @@
+Short term TODOs:
+
+* Clean up message body structure, get rid of the ugly macros
+
+* Add some basic documentation
+
+* Add more and better unit tests
+
+* Formalise and add tests for the election algorithm

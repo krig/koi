@@ -1,0 +1,61 @@
+#!/bin/sh
+
+start() {
+  echo "$SVCNAME starting.."
+  exit 0
+}
+
+stop() {
+  echo "$SVCNAME stopping.."
+  exit 0
+}
+
+status() {
+  echo "$SVCNAME statusing.."
+  exit 0
+}
+
+promote() {
+  echo "$SVCNAME promoting.."
+  exit 0
+}
+
+demote() {
+  echo "$SVCNAME demoting.."
+  exit 0
+}
+
+failed() {
+  echo "$SVCNAME failing.."
+  exit 0
+}
+
+f__k_it() {
+  echo "$SVCNAME NOES"
+  exit 1
+}
+
+handle() {
+    case "$1" in
+        start)
+            start
+            ;;
+        stop)
+            stop
+            ;;
+        status)
+            status
+            ;;
+        promote)
+            promote
+            ;;
+        demote)
+            demote
+            ;;
+        failed)
+            failed
+            ;;
+        *)
+            exit 1
+    esac
+}

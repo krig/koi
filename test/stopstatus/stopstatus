@@ -1,0 +1,19 @@
+#!/bin/sh
+
+SVCNAME="$0"
+PARAM="$1"
+
+. ../scripts/koi-service.sh
+. ./test_shared
+
+foofoo() {
+    echo "$SVCNAME is not running!"
+    return $KOI_STOPPED
+}
+
+if [[ $PARAM = "status" ]]
+then
+    foofoo
+else
+    handle $PARAM
+fi

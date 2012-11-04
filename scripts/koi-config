@@ -1,0 +1,177 @@
+#!/usr/bin/env python
+
+from optparse import OptionParser
+import sys
+
+CFG = "./koi.conf;/etc/koi/koi.conf"
+
+def commandline():
+    parser = OptionParser(usage="%prog [OPTIONS] list|set|get [arguments]")
+    parser.add_option("-c", "--config", dest="config", default=CFG,
+                      help="Koi configuration file", metavar="CFG")
+
+    (options, args) = parser.parse_args()
+
+    if (len(args) < 1):
+        parser.error('Expected command')
+
+    if args[0] not in ['list', 'set', 'get']:
+        parser.error('Invalid/unknown command: ' + ' '.join(args))
+
+    class Args: pass
+    ret = Args()
+    ret.config = options.config.split(';')
+    ret.command = args[0].lower()
+    ret.args = args[1:]
+    return ret
+
+def parse_config(cfg):
+    def skipws(s, ws = [' ', '\t']):
+        while s[0] in ws:
+            s = s[1:]
+        return s
+
+    def skipcomment(s):
+        if s[0] == ';':
+            n = s.find('\n')
+            s = s[(n+1):]
+        return s
+
+    def nl_or_qt(s):
+        if s[0] == '\n':
+            return s[1:], '\n'
+        elif s[0] == '"':
+            start = s[1:]
+            end = start.find('"')
+            return start[(end+1):], start[0:end]
+
+    def next_token(s):
+        if len(s) == 0:
+            return s, None
+        if s[0] in ['\n', '"']:
+            return nl_or_qt(s)
+        s = skipws(s)
+        s = skipcomment(s)
+        s = skipws(s)
+        if len(s) > 0:
+            if s[0] in ['\n', '"']:
+                return nl_or_qt(s)
+            start = s
+            end = 0
+            while s[0] not in [' ', '\t', '\n']:
+                end = end + 1
+                s = s[1:]
+            return s, start[:end]
+        return s, None
+
+    def tokenize(s):
+        tokens = []
+        s,t = next_token(s)
+        while t:
+            tokens.append(t)
+            s,t = next_token(s)
+        return tokens
+
+    tokens = tokenize(cfg)
+
+    config = {}
+
+    def grab_token(to, tokens):
+        if tokens[0] == '\n':
+            tokens = tokens[1:]
+        elif tokens[1] == '{':
+            name = tokens[0]
+            tokens, obj = parse_subobject(tokens[2:])
+            to[name] = obj
+        elif tokens[1] == '\n':
+            to[tokens[0]] = ''
+            tokens = tokens[2:]
+        elif tokens[2] == '\n':
+            to[tokens[0]] = tokens[1]
+            tokens = tokens[3:]
+        else:
+            tokens = tokens[1:]
+        return tokens
+
+    def parse_subobject(tokens):
+        obj = {}
+        while (len(tokens) > 1) and (tokens[0] != '}'):
+            tokens = grab_token(obj, tokens)
+
+        if tokens[0] == '}':
+            tokens = tokens[1:]
+
+        return tokens, obj
+
+    while len(tokens) > 1:
+        tokens = grab_token(config, tokens)
+
+    return config
+
+CFGFILE = None
+
+def read_config(cfgs):
+    global CFGFILE
+    fil = None
+    for cfg in cfgs:
+        try:
+            CFGFILE = cfg
+            f = open(cfg)
+            fil = f.read()
+            f.close()
+            break
+        except Exception:
+            pass
+    if fil is None:
+        return ""
+    return parse_config(fil)
+
+def config_to_string(cfg, d=0):
+    s = ""
+    for k,v in cfg.iteritems():
+        if type(v) is dict:
+            s += ('\t'*d) + k + " {\n"
+            s += config_to_string(v, d+1)
+            s += ('\t'*d) + "}\n\n"
+        else:
+            s += ('\t'*d) + k + ' "%s"\n'%(v)
+    return s
+
+cmdline = commandline()
+
+cfg = read_config(cmdline.config)
+
+if cmdline.command == 'list':
+    if len(cmdline.args) != 0:
+        print "Wrong argument count for list"
+        sys.exit(1)
+    print "Configuration file:", CFGFILE
+    print config_to_string(cfg)
+elif cmdline.command == 'get':
+    if len(cmdline.args) != 1:
+        print "Wrong argument count for get"
+        sys.exit(1)
+    what = cmdline.args[0].split('.')
+    search = cfg
+    try:
+        for n in what:
+            search = search[n]
+    except KeyError, e:
+        sys.exit(1)
+    print search
+elif cmdline.command == 'set':
+    if len(cmdline.args) != 2:
+        print "Wrong argument count for set"
+        sys.exit(1)
+    what = cmdline.args[0].split('.')
+    towhat = cmdline.args[1]
+    search = cfg
+    for n in what[:-1]:
+        if n in search:
+            search = search[n]
+        else:
+            search[n] = {}
+            search = search[n]
+    search[what[-1]] = towhat
+
+    print config_to_string(cfg),

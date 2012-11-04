@@ -1,0 +1,14 @@
+#!/bin/sh
+
+SVCNAME="$0"
+PARAM="$1"
+
+. ./test_shared
+
+if [[ $PARAM = "failed" ]]; then
+    f__k_it
+elif [[ $PARAM = "status" ]]; then
+    f__k_it
+else
+    handle $PARAM
+fi
