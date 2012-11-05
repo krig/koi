@@ -59,6 +59,12 @@ The main use case is to provide redundancy for some piece of software
 that can run in both active and passive mode, and where one instance
 of the program should be active at any given time.
 
+Koi also makes it easy to have support software that should be started
+before or after the main software, and should run on the same machine
+as the active instance. One example would be a script to set up a
+virtual IP address, that follows the active instance around the
+cluster.
+
 ## Election algorithm
 
 Since the focus of koi is small, usually site-local clusters, a simple
@@ -90,11 +96,17 @@ problematic. Basically, koi needs to be compiled using whatever
 standard library boost happened to be compiled with. So far, this
 still seems to be the older standard library.
 
-Configuring:
+GCC, if found, is the default compiler when configuring waf. Koi needs
+at least GCC version 4.4 to compile correctly:
+
+    ./waf configure
+
+For clang, the compiler needs to be specified explicitly:
 
     CC=clang CXX=clang++ ./waf configure
 
-Compiling:
+Once configured, running waf without arguments will build the project
+and run the unit tests:
 
     ./waf
 
