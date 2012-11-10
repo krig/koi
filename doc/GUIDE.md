@@ -27,6 +27,14 @@ setting up and maintaining a high availability cluster using koi.
 
 ## Compilation
 
+Right now, koi is hosted mainly at `https://github.com/krig/koi`.
+
+After cloning the repository, the catch submodule needs to be fetched
+for the unit tests to run correctly:
+
+    git submodule init
+    git submodule update
+
 Koi uses waf to manage the build process. Waf is a python-based build
 management tool similar to scons, with the benefit of being small
 enough to include directly in the repository. Because of this, the

@@ -96,6 +96,11 @@ problematic. Basically, koi needs to be compiled using whatever
 standard library boost happened to be compiled with. So far, this
 still seems to be the older standard library.
 
+To fetch the catch submodule used for unit tests, do
+
+    git submodule init
+    git submodule update
+
 GCC, if found, is the default compiler when configuring waf. Koi needs
 at least GCC version 4.4 to compile correctly:
 
