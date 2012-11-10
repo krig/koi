@@ -182,8 +182,7 @@ namespace {
 	}
 
 	void write_archive(archive& a, const heartbeat* hb) {
-		a << hb->_clusterid
-		  << hb->_name
+		a << hb->_name
 		  << hb->_flags;
 		if (hb->_elector.is_nil()) {
 			a << false;
@@ -202,8 +201,7 @@ namespace {
 	void read_archive(reader& r, heartbeat* hb) {
 		bool state;
 		hb->_nodes.clear();
-		r >> hb->_clusterid
-		  >> hb->_name
+		r >> hb->_name
 		  >> hb->_flags
 		  >> state;
 		if (state) {
@@ -445,6 +443,7 @@ namespace koi {
 				a << (int)koi::version
 				  << msg->_seqnr
 				  << (int)msg->_op
+				  << msg->_cluster_id
 				  << msg->_sender_uuid;
 
 				switch(msg->_op) {
@@ -552,7 +551,8 @@ namespace koi {
 
 				msg->_op = (base::Type)op;
 
-				r >> msg->_sender_uuid;
+				r >> msg->_cluster_id
+				  >> msg->_sender_uuid;
 
 				switch (msg->_op) {
 				case base::HealthReport:

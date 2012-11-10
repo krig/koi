@@ -30,9 +30,8 @@ namespace koi {
 }
 
 TEST_CASE("messages/hrencode", "tests for encoding a health report") {
-	message m;
+	message m(test_uuid, 1);
 	healthreport* hr = m.set_body<healthreport>();
-	m._sender_uuid = test_uuid;
 	hr->_name = "test";
 	hr->_uptime = 0;
 	hr->_state = S_Master;
@@ -51,9 +50,8 @@ TEST_CASE("messages/hrencode", "tests for encoding a health report") {
 
 TEST_CASE("messages/hrpingpong", "tests encoding, then decoding a health report") {
 	debug_mode = true;
-	message m;
+	message m(test_uuid, 1);
 	healthreport* hr = m.set_body<healthreport>();
-	m._sender_uuid = test_uuid;
 	hr->_name = "mr. test";
 	hr->_uptime = 100;
 	hr->_state = S_Elector;
@@ -81,9 +79,8 @@ TEST_CASE("messages/hrpingpong", "tests encoding, then decoding a health report"
 
 TEST_CASE("messages/wrong", "tests encoding, then decoding with bad pass") {
 	debug_mode = true;
-	message m;
+	message m(test_uuid, 1);
 	healthreport* hr = m.set_body<healthreport>();
-	m._sender_uuid = test_uuid;
 	hr->_name = "mr. test";
 	hr->_uptime = 100;
 	hr->_state = S_Elector;
@@ -106,10 +103,9 @@ TEST_CASE("messages/wrong", "tests encoding, then decoding with bad pass") {
 }
 
 TEST_CASE("messages/emptybuffer", "see if we can decode from an empty buffer") {
-	message m;
+	message m(test_uuid, 1);
 	response* r = m.set_body<response>();
 	r->_response.insert(std::make_pair("testkey", "testvalue"));
-	m._sender_uuid = test_uuid;
 
 	std::vector<uint8_t> to;
 	bool enc = encode(to, &m, "testpass");
@@ -121,10 +117,9 @@ TEST_CASE("messages/emptybuffer", "see if we can decode from an empty buffer") {
 }
 
 TEST_CASE("messages/partial", "try to decode partial message") {
-	message m;
+	message m(test_uuid, 1);
 	response* r = m.set_body<response>();
 	r->_response.insert(std::make_pair("testkey", "testvalue"));
-	m._sender_uuid = test_uuid;
 
 	std::vector<uint8_t> to;
 	bool enc = encode(to, &m, "testpass");
@@ -167,14 +162,12 @@ namespace {
 }
 
 TEST_CASE("messages/compression", "try to decode compressed message") {
-	message m;
+	message m(test_uuid, 1);
 	response* r = m.set_body<response>();
 
 	srand(1292);
 	for (int i = 0; i < 100; ++i)
 		r->_response.insert(std::make_pair(randstr(10), randstr(20)));
-
-	m._sender_uuid = test_uuid;
 
 	std::vector<uint8_t> to;
 	bool enc = encode(to, &m, "testpass");

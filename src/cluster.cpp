@@ -179,10 +179,9 @@ void cluster::update_candidate() {
 		if (_t - _candidate_time >= Limit) {
 			_mode = Leader;
 
-			message m2(_cfg._uuid);
+			message m2(_cfg._uuid, _cfg._cluster_id);
 			m2._from = net::endpoint(net::ipaddr(), _cfg._port);
 			auto hb = m2.set_body<msg::heartbeat>();
-			hb->_clusterid = _cfg._cluster_id;
 			hb->_name = _cfg._name;
 			hb->_flags = _flags;
 			hb->_nodes = _state._nodes;

@@ -37,9 +37,8 @@ network::network(nexus& route, int netid)
 }
 
 void network::send(const uuid& ID, const string& name, int flags) {
-	message m(ID, msg::base::HeartBeat);
+	message m(ID, _netid, msg::base::HeartBeat);
 	auto* hb = m.set_body<msg::heartbeat>();
-	hb->_clusterid = _netid;
 	hb->_name = name;
 	hb->_flags = flags;
 	hb->_nodes.clear();
@@ -49,9 +48,8 @@ void network::send(const uuid& ID, const string& name, int flags) {
 }
 
 void network::send(const uuid& ID, const string& name, const clusterstate& s, int flags) {
-	message m(ID, msg::base::HeartBeat);
+	message m(ID, _netid, msg::base::HeartBeat);
 	auto* hb = m.set_body<msg::heartbeat>();
-	hb->_clusterid = _netid;
 	hb->_name = name;
 	hb->_flags = flags;
 	hb->_nodes.clear();
@@ -67,9 +65,8 @@ void network::sendto(const uuid& to, const uuid& ID, const string& name, int fla
 	if (who == net::endpoint())
 		return;
 
-	message m(ID, msg::base::HeartBeat);
+	message m(ID, _netid, msg::base::HeartBeat);
 	auto* hb = m.set_body<msg::heartbeat>();
-	hb->_clusterid = _netid;
 	hb->_name = name;
 	hb->_flags = flags;
 	hb->_nodes.clear();
@@ -90,10 +87,7 @@ message network::recv(const uuid& ID) {
 	while (!_in_queue.empty()) {
 		message m = _in_queue.front();
 		_in_queue.pop_front();
-		if (m.body<msg::heartbeat>()->_clusterid != _netid)
-			continue;
-
-		if (m._sender_uuid == ID)
+		if (m._cluster_id != _netid || m._sender_uuid == ID)
 			continue;
 
 		// TODO: signal state change when this changes (?)

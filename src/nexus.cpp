@@ -141,8 +141,9 @@ namespace koi {
 			_in_buffer.resize(nbytes);
 
 			message m;
-			if (parse_message(m))
+			if (parse_message(m) && m._cluster_id == _cfg._cluster_id) {
 				_in_queue.push_back(m);
+			}
 		}
 
 		_in_buffer.resize(msg::MAX_MSG_LEN);
@@ -186,7 +187,7 @@ namespace koi {
 
 	void nexus_impl::rpc_response(const net::endpoint& to,
 	                              const msg::response::values& data) {
-		message m(_cfg._uuid);
+		message m(_cfg._uuid, _cfg._cluster_id);
 		auto rs = m.set_body<msg::response>();
 		rs->_response = data;
 

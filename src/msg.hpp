@@ -55,6 +55,7 @@ namespace koi {
 			int _version; // version matching
 			uint32_t _seqnr; // sequence number (to counteract reordering)
 			base::Type _op; // what kind of operation is it
+			uint8_t _cluster_id;
 			uuid _sender_uuid;
 			net::endpoint _from;
 			boost::shared_ptr<msg::base> _body;
@@ -71,19 +72,22 @@ namespace koi {
 			message() : _version(koi::version),
 			            _seqnr(0),
 			            _op(base::NumOps),
+			            _cluster_id(0),
 			            _sender_uuid(boost::uuids::nil_uuid()),
 			            _from() {}
-			message(const uuid& uuid)
+			message(const uuid& uuid, uint8_t cluster_id)
 				: _version(koi::version),
 				  _seqnr(0),
 				  _op(base::NumOps),
+				  _cluster_id(cluster_id),
 				  _sender_uuid(uuid),
 				  _from() {
 			}
-			message(const uuid& uuid, base::Type op)
+			message(const uuid& uuid, uint8_t cluster_id, base::Type op)
 				: _version(koi::version),
 				  _seqnr(0),
 				  _op(op),
+				  _cluster_id(cluster_id),
 				  _sender_uuid(uuid),
 				  _from() {
 			}
@@ -203,7 +207,6 @@ namespace koi {
 
 			typedef std::vector<node> nodes;
 
-			uint8_t _clusterid;
 			string _name;
 			int _flags;
 			nodes _nodes;

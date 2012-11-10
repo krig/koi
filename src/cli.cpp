@@ -65,13 +65,14 @@ namespace {
 	}
 
 	struct client {
-		client(asio::io_service& io_service, net::endpoint server, const uuid& id, const char* pass)
+		client(asio::io_service& io_service, net::endpoint server, const uuid& id, uint8_t cluster_id, const char* pass)
 			: _complete(-1),
 			  _io_service(io_service),
 			  _socket(io_service),
 			  _server(server),
 			  _starttime(microsec_clock::local_time()),
 			  _id(id),
+			  _cluster_id(cluster_id),
 			  _pass(pass) {
 			_init_socket(net::endpoint(net::ipaddr::from_string("0.0.0.0"), KOI_CLIENT_PORT));
 		}
@@ -129,7 +130,7 @@ namespace {
 
 			_command = cmd;
 
-			message m(_id);
+			message m(_id, _cluster_id);
 
 			ptime resend_time;
 			ptime now;
@@ -178,10 +179,13 @@ namespace {
 				return;
 			}
 
+			if (m._cluster_id != _cluster_id)
+				return; // ignore
+
 			command_ptr next = _command->handle(m, _response_endpoint, _complete);
 			if (next) {
 				_command = next;
-				message mg(_id);
+				message mg(_id, _cluster_id);
 				_server = _command->prepare(mg, _server);
 				send_message(mg, _server);
 				_complete = -1;
@@ -197,6 +201,7 @@ namespace {
 		command_ptr       _command;
 		ptime             _starttime;
 		uuid              _id;
+		uint8_t           _cluster_id;
 		string            _pass;
 	};
 
@@ -206,7 +211,7 @@ namespace {
 			return 1;
 		}
 		asio::io_service io_service;
-		client c(io_service, net::endpoint(net::ipaddr::from_string(host), port), cfg._uuid, cfg._pass.c_str());
+		client c(io_service, net::endpoint(net::ipaddr::from_string(host), port), cfg._uuid, cfg._cluster_id, cfg._pass.c_str());
 		return c.execute_command(cmd);
 	}
 }
