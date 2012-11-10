@@ -219,7 +219,6 @@ namespace koi {
 			}
 		} // reset failcount after X seconds
 		else if (_failcount >= cfg._service_auto_recover &&
-		         _state >= S_Disconnected &&
 		         now - _last_transition > microseconds(cfg._service_failcount_reset_time)) {
 			LOG_INFO("Resetting failcount (was %d)", _failcount);
 			_failcount = 0;
