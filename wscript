@@ -106,6 +106,7 @@ def build(bld):
         cxxflags=cxxflags + ['-Wshadow', '-Wswitch-default'],
         linkflags=ldflags,
         use='common_objects BOOST',
+        install_path = '${PREFIX}/sbin',
         includes = '.')
 
     bld.program(
@@ -115,6 +116,7 @@ def build(bld):
         cxxflags=cxxflags + ['-Wshadow', '-Wswitch-default'],
         linkflags=ldflags,
         use='common_objects BOOST',
+        install_path = '${PREFIX}/sbin',
         includes = '.')
 
     from waflib.Tools import waf_unit_test
