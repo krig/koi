@@ -48,7 +48,7 @@ _sources = [
     ]
 cxxflags = ['-g',
             '-O2',
-            '-std=c++11',
+            '-std=c++0x',
             '-Wall',
             '-Wextra',
             '-Werror',
@@ -56,7 +56,7 @@ cxxflags = ['-g',
             '-Wno-unused',
             '-Wno-unused-parameter',
             '-DDEBUG=1']
-ldflags = ['-g', '-std=c++11']
+ldflags = ['-g', '-std=c++0x']
 
 def options(opt):
     opt.load(['compiler_c', 'compiler_cxx', 'waf_unit_test', 'boost'])
