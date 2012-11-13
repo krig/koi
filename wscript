@@ -2,8 +2,9 @@
 
 from subprocess import Popen, PIPE, STDOUT
 from os.path import basename
+from waflib import Logs
 
-def conf_get_git_rev():
+def _conf_get_git_rev():
     """
     Get the SHA1 of git HEAD
     """
@@ -64,8 +65,22 @@ def options(opt):
 def configure(conf):
     conf.check_waf_version(mini='1.7.5')
     conf.load(['compiler_c', 'compiler_cxx', 'waf_unit_test', 'boost'])
-    conf.check(header_name=['sys/types.h', 'sys/wait.h'], features='cxx cxxprogram', mandatory=True)
-    conf.check_boost(lib=['system', 'regex', 'program_options', 'date_time'], mt=True, static=False)
+    try:
+        try:
+            conf.check(header_name=['sys/types.h', 'sys/wait.h'], cxxflags=cxxflags, features='cxx cxxprogram', mandatory=True)
+        except conf.errors.WafError, e:
+            Logs.warn('GCC 4.4+ or clang 3.1+ with C++0x/C++11 support required')
+            raise e
+
+        try:
+            conf.check_boost(lib=['system', 'regex', 'program_options', 'date_time'], mt=True, static=False)
+        except conf.errors.WafError, e:
+            Logs.warn('boost 1.49+ required: see http://boost.org')
+            raise e
+
+    except conf.errors.WafError, e:
+        Logs.info('To specify an alternate compiler, use CC and CXX environment variables')
+        raise e
 
 def _tests(bld):
     import os, glob
@@ -97,7 +112,7 @@ def build(bld):
         features = 'subst',
         source = 'scripts/version.template',
         target = 'version.c',
-        REVISION = conf_get_git_rev())
+        REVISION = _conf_get_git_rev())
 
     bld.program(
         source=['src/koi.cpp', 'src/run.cpp', 'version.c'],
