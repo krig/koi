@@ -30,6 +30,14 @@ using namespace boost::posix_time;
 namespace {
 	using namespace koi;
 
+	enum StatusExitCodes {
+		EC_OK = 0,
+		EC_Error = 1,
+		EC_Master = 90,
+		EC_Slave = 91,
+		EC_Stopped = 92
+	};
+
 	const char* get_servicename(const char* name) {
 		if (isdigit(*name)) {
 			name++;
@@ -394,37 +402,47 @@ namespace koi {
 		} while (!empty_loop || !at_target_state);
 	}
 
-	bool service_manager::check_exitcode(service& s) const {
-		enum StatusExitCodes {
-			EC_OK = 0,
-			EC_Error = 1,
-			EC_Master = 90,
-			EC_Slave = 91,
-			EC_Stopped = 92
-		};
-		const int ecode = s._running.exitcode;
-		if (s._event &&
-		    (s._event->_name == "status") &&
-		    (ecode >= EC_Master) &&
-		    (ecode <= EC_Stopped)) {
-			switch (ecode) {
-			case EC_Master:
-				if (s._state < Svc_Demoting)
-					s._state = Svc_Promoted;
-				return true;
-			case EC_Slave:
-				if (s._state == Svc_Promoted ||
-				    s._state < Svc_Stopping)
-					s._state = Svc_Started;
-				return true;
-			case EC_Stopped:
-			default:
-				if (s._state > Svc_Starting)
-					s._state = Svc_Stopped;
-				return true;
+	bool service_manager::check_exitcode(service& s) {
+		if (_is_masterslave_status(s)) {
+			if (!_check_masterslave_status(s)) {
+				LOG_ERROR("%s:%s does not match node state %s",
+				          s._name.c_str(),
+				          service_state_string(s._state),
+				          service_action_string(_target_action));
+				return _update_service_state(s);
 			}
+			return true;
 		}
-		return ecode == 0;
+		return s._running.exitcode == 0;
+	}
+
+	bool service_manager::_is_masterslave_status(service& s) const {
+		const int ecode = s._running.exitcode;
+		return (s._event != 0) &&
+			(s._event->_name == "status") &&
+			(ecode >= EC_Master) &&
+			(ecode <= EC_Stopped);
+	}
+
+	bool service_manager::_check_masterslave_status(service& s) const {
+		switch (s._running.exitcode) {
+		case EC_Master:
+			if (s._state < Svc_Demoting)
+				s._state = Svc_Promoted;
+			break;
+		case EC_Slave:
+			if (s._state == Svc_Promoted ||
+			    s._state < Svc_Stopping)
+				s._state = Svc_Started;
+			break;
+		case EC_Stopped:
+		default:
+			if (s._state > Svc_Starting)
+				s._state = Svc_Stopped;
+			break;
+		}
+
+		return matches(s._state, _target_action);
 	}
 
 	bool service_manager::complete_transition(ptime now, service& s) {
@@ -538,6 +556,7 @@ namespace koi {
 
 	bool service_manager::_update_promoted_service(service& s) {
 		if (_target_action == Svc_Demote ||
+		    _target_action == Svc_Start ||
 		    _target_action == Svc_Stop ||
 		    _target_action == Svc_Fail) {
 			if (allow_demote(s) && !s.demote(_logproxy.inpipe)) {
@@ -986,6 +1005,26 @@ namespace koi {
 		default:
 			break;
 		}
+		return false;
+	}
+
+	// Used to determine if a second service transition may be needed
+	// after the status script returns: If the resulting service state
+	// does not match the target action, execute another state transition
+	// immediately
+	bool service_manager::matches(ServiceState state, ServiceAction action) const {
+		switch (action) {
+		case Svc_Fail:
+		case Svc_Stop:
+			return state <= Svc_Stopping;
+		case Svc_Start:
+		case Svc_Demote:
+			return state >= Svc_Starting && state <= Svc_Demoting;
+		case Svc_Promote:
+			return state >= Svc_Promoting;
+		default:
+			break;
+		};
 		return false;
 	}
 }

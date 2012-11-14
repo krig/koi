@@ -151,14 +151,18 @@ namespace koi {
 
 		void _service_failed(service& s);
 
+		bool _is_masterslave_status(service& s) const;
+		bool _check_masterslave_status(service& s) const;
+
 		void wait_for_shutdown();
 		void wait_for_demote(bool maintenance_mode);
 		void wait_for_stop(bool maintenance_mode);
 		bool complete_transition(ptime now, service& s);
-		bool check_exitcode(service& s) const;
+		bool check_exitcode(service& s);
 		void toggle_logproxy();
 
 		bool resolves(ServiceState state, ServiceAction action) const;
+		bool matches(ServiceState state, ServiceAction action) const;
 
 		services                  _services;
 		ServiceAction             _target_action;
