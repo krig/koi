@@ -15,7 +15,37 @@
   OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 #include "test.hpp"
+#include "msg.hpp"
+#include "sequence.hpp"
+#include "network.hpp"
+#include "masterstate.hpp"
+#include "clusterstate.hpp"
+#include "cluster.hpp"
+#include "settings.hpp"
 
-TEST_CASE("node/blah", "how the hell do I test this...") {
+#include <boost/uuid/name_generator.hpp>
+
+using namespace koi;
+using namespace boost;
+using namespace boost::uuids;
+
+TEST_CASE("node/clusterstate", "updating cluster state") {
+	uuid dns_namespace_uuid;
+	name_generator gen(dns_namespace_uuid);
+	clusterstate cs;
+
+	uuid a = gen("a");
+	uuid b = gen("b");
+
+	bool changed;
+
+	changed = cs.update(a, "a", NodeFlag_Elector, parse_endpoint("192.168.1.1", 1));
+	REQUIRE(changed == true);
+
+	changed = cs.update(b, "b", NodeFlag_Runner, parse_endpoint("192.168.1.1", 2));
+	REQUIRE(changed == true);
+
+	changed = cs.update(a, "a", NodeFlag_Elector, parse_endpoint("192.168.1.1", 1));
+	REQUIRE(changed == false);
 
 }

@@ -196,7 +196,7 @@ namespace koi {
 		else if (!_enabled && (_state == S_Disconnected || _state > S_Stopped)) {
 			transition(S_Stopped, "Manually stopped.");
 		}
-		else if (_enabled && (_state == S_Stopped || _state == S_Disconnected)) {
+		else if (_enabled && (_state == S_Disconnected || _state == S_Stopped)) {
 			transition(S_Slave, "Connected to elector (low uptime).");
 		}
 	}
