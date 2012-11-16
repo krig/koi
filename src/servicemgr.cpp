@@ -292,7 +292,7 @@ namespace koi {
 						string t = to_simple_string(now - s._running.started_at);
 						LOG_WARN("Command '%s' timed out after %s", s._event->_name.c_str(),
 						         t.c_str());
-						s._running.kill(SIGKILL);
+						s._running.termkill(1000*1000);
 						s.report_timeout();
 						s.unrun();
 						allwell = false;

@@ -205,6 +205,20 @@ namespace koi {
 		return ::kill(pid, sig) == 0;
 	}
 
+	bool command::termkill(size_t sleep_usec) {
+		if (!this->kill(SIGTERM)) {
+			return this->kill(SIGKILL);
+		}
+		else {
+			usleep(sleep_usec);
+			if (!query_complete()) {
+				return this->kill(SIGKILL);
+			}
+		}
+		return true;
+	}
+
+
 	bool execute_command(char* const* argv, const char* workdir, int* exitcode) {
 		command cmd;
 		cmd.begin(argv, workdir);

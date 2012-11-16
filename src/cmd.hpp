@@ -33,6 +33,7 @@ namespace koi {
 		ssize_t read_stdout(char* to, int bufsize);
 
 		bool kill(int sig);
+		bool termkill(size_t sleep_usec);
 
 		int exitcode;
 		pid_t pid;
