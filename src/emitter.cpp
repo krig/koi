@@ -77,7 +77,7 @@ namespace koi {
 
 	void emitter::immediate_tick() {
 		if (!_receivers.empty()) {
-			message m;
+			message m(_nexus.cfg()._uuid, _nexus.cfg()._cluster_id);
 			_on_tick(&m);
 			FOREACH(const net::endpoint& to, _receivers) {
 				_nexus.send(m, to);
