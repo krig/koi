@@ -3,6 +3,7 @@
 from subprocess import Popen, PIPE, STDOUT
 from os.path import basename
 from waflib import Logs
+import os, sys
 
 def _conf_get_git_rev():
     """
@@ -49,7 +50,6 @@ _sources = [
     ]
 cxxflags = ['-g',
             '-O2',
-            '-std=c++0x',
             '-Wall',
             '-Wextra',
             '-Werror',
@@ -57,7 +57,21 @@ cxxflags = ['-g',
             '-Wno-unused',
             '-Wno-unused-parameter',
             '-DDEBUG=1']
-ldflags = ['-g', '-std=c++0x']
+
+ldflags = ['-g']
+
+if sys.platform == 'darwin':
+    cxxflags += ['-std=c++11', '-stdlib=libc++']
+    ldflags += ['-std=c++11', '-stdlib=libc++']
+else:
+    cxxflags += ['-std=c++0x']
+    ldflags += ['-std=c++0x']
+
+sysincludes = []
+if 'SYSINCLUDES' in os.environ:
+    for si in os.environ['SYSINCLUDES'].split(','):
+        sysincludes.append('-isystem')
+        sysincludes.append(si)
 
 def options(opt):
     opt.load(['compiler_c', 'compiler_cxx', 'waf_unit_test', 'boost'])
