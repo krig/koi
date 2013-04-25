@@ -347,7 +347,7 @@ namespace koi {
 		// setup basic environment
 		// verify machine
 		if (_starttime == posix_time::ptime(posix_time::not_a_date_time)) {
-			_starttime = posix_time::microsec_clock::local_time();
+			_starttime = posix_time::microsec_clock::universal_time();
 		}
 
 		_uuid = boost::uuids::random_generator()();

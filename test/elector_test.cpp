@@ -50,7 +50,7 @@ TEST_CASE("elector/promote", "test successful node promotion") {
 	a.update();
 
 	elector::runner_info r;
-	ptime now = microsec_clock::local_time();
+	ptime now = microsec_clock::universal_time();
 	r._last_seen = now;
 	r._last_failed = ptime(min_date_time);
 	r._name = "test";

@@ -54,7 +54,7 @@ namespace koi {
 	}
 
 	bool runner::init() {
-		_starttime = microsec_clock::local_time();
+		_starttime = microsec_clock::universal_time();
 		return true;
 	}
 
@@ -242,7 +242,7 @@ namespace koi {
 	}
 
 	void runner::update() {
-		const ptime now = microsec_clock::local_time();
+		const ptime now = microsec_clock::universal_time();
 
 		// update receivers based on ports elector
 		{
@@ -289,7 +289,7 @@ namespace koi {
 		}
 
 		_elector._uuid = m._sender_uuid;
-		_elector._last_seen = microsec_clock::local_time();
+		_elector._last_seen = microsec_clock::universal_time();
 		const auto su = m.body<msg::stateupdate>();
 		_elector._master_uuid = su->_master_uuid;
 		_elector._uptime = su->_uptime;
@@ -376,7 +376,7 @@ namespace koi {
 		}
 
 		_state = new_state;
-		_last_transition = microsec_clock::local_time();
+		_last_transition = microsec_clock::universal_time();
 	}
 
 	void runner::switch_mode(RunnerMode new_mode, const char* why) {

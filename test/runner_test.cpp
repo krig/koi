@@ -132,7 +132,7 @@ TEST_CASE("runner/check_timeouts", "Test timeout state transitions") {
 	REQUIRE(ok);
 	r.start();
 
-	ptime t0 = microsec_clock::local_time();
+	ptime t0 = microsec_clock::universal_time();
 	ptime t1 = t0 + milliseconds(10);
 	ptime t2 = t0 + milliseconds(70);
 	ptime t3 = t0 + milliseconds(150);

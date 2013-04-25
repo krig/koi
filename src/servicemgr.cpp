@@ -131,7 +131,7 @@ namespace koi {
 	}
 
 	bool service_manager::update(const service_events& events, State state, uint64_t status_interval, uint64_t state_update_interval, bool maintenance_mode) {
-		ptime now = microsec_clock::local_time();
+		ptime now = microsec_clock::universal_time();
 
 		// Update environment variables used by services
 		::setenv("KOI_IS_PROMOTED", (_target_action == Svc_Promote) ? "1" : "0", 1);
@@ -190,7 +190,7 @@ namespace koi {
 	}
 
 	bool service_manager::status(service_events const& events) {
-		const ptime now = microsec_clock::local_time();
+		const ptime now = microsec_clock::universal_time();
 		update_list(events);
 		const bool ok = verify_states(now);
 		const string ssum = status_summary(now);
@@ -320,7 +320,7 @@ namespace koi {
 	}
 
 	void service_manager::wait_for_demote(bool maintenance_mode) {
-		ptime begin_wait = microsec_clock::local_time();
+		ptime begin_wait = microsec_clock::universal_time();
 
 		bool at_target_state, empty_loop, first_loop = true;
 
@@ -328,7 +328,7 @@ namespace koi {
 			return;
 
 		do {
-			if (microsec_clock::local_time() - begin_wait > seconds(360)) {
+			if (microsec_clock::universal_time() - begin_wait > seconds(360)) {
 				LOG_ERROR("Timeout: demote is taking too long!");
 				break;
 			}
@@ -359,14 +359,14 @@ namespace koi {
 	}
 
 	void service_manager::wait_for_shutdown() {
-		ptime begin_wait = microsec_clock::local_time();
+		ptime begin_wait = microsec_clock::universal_time();
 
 		bool at_target_state;
 		bool empty_loop;
 		bool first_loop = true;
 		do {
 			// TODO: make configurable
-			if (microsec_clock::local_time() - begin_wait > seconds(360)) {
+			if (microsec_clock::universal_time() - begin_wait > seconds(360)) {
 				FOREACH(auto& svc, _services) {
 					service& s = svc.second;
 					if (s._running.is_active()) {
@@ -602,7 +602,7 @@ namespace koi {
 	}
 
 	bool service_manager::update_states(uint64_t state_update_interval, bool force) {
-		ptime now = microsec_clock::local_time();
+		ptime now = microsec_clock::universal_time();
 		if (!force && (now - _last_update_states < microseconds(state_update_interval)))
 			return true;
 		_last_update_states = now;

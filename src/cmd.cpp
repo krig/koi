@@ -72,7 +72,7 @@ namespace koi {
 			exit(-1);
 		}
 		else if (pid != -1) {
-			started_at = microsec_clock::local_time();
+			started_at = microsec_clock::universal_time();
 		}
 		else {
 			LOG_ERROR("Unable to fork: %s", argv[0]);
@@ -113,7 +113,7 @@ namespace koi {
 		// parent
 		else if (pid != -1) {
 			close(stdout_pipe[1]);
-			started_at = microsec_clock::local_time();
+			started_at = microsec_clock::universal_time();
 		}
 		else {
 			LOG_ERROR("Unable to fork: %s", argv[0]);
@@ -149,7 +149,7 @@ namespace koi {
 			exit(-1);
 		}
 		else if (pid != -1) {
-			started_at = microsec_clock::local_time();
+			started_at = microsec_clock::universal_time();
 		}
 		else {
 			LOG_ERROR("Unable to fork: %s", argv[0]);

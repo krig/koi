@@ -582,7 +582,7 @@ namespace koi {
 		FOREACH(message& m, processing)
 			_route(m);
 
-		ptime now(microsec_clock::local_time());
+		ptime now(microsec_clock::universal_time());
 		if (now - _cluster_t >= microseconds(_impl->_cfg._cluster_update_interval)) {
 			_impl->_cluster.update();
 			_cluster_t = now;

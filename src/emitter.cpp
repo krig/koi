@@ -72,7 +72,7 @@ namespace koi {
 	}
 
 	uint64_t emitter::uptime(ptime starttime) const {
-		return (microsec_clock::local_time() - starttime).total_milliseconds();
+		return (microsec_clock::universal_time() - starttime).total_milliseconds();
 	}
 
 	void emitter::immediate_tick() {
@@ -91,7 +91,7 @@ namespace koi {
 
 		if (_active) {
 			immediate_tick();
-			_last_tick = posix_time::microsec_clock::local_time();
+			_last_tick = posix_time::microsec_clock::universal_time();
 		}
 		_timer.expires_from_now(posix_time::microseconds(_tick_interval));
 		_timer.async_wait(bind(&emitter::_process_tick, this, _1));

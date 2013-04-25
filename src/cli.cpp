@@ -70,7 +70,7 @@ namespace {
 			  _io_service(io_service),
 			  _socket(io_service),
 			  _server(server),
-			  _starttime(microsec_clock::local_time()),
+			  _starttime(microsec_clock::universal_time()),
 			  _id(id),
 			  _cluster_id(cluster_id),
 			  _pass(pass) {
@@ -135,7 +135,7 @@ namespace {
 			ptime resend_time;
 			ptime now;
 			while (sending()) {
-				now = microsec_clock::local_time();
+				now = microsec_clock::universal_time();
 				_server = _command->prepare(m, _server);
 				resend_time = now + seconds(2);
 				send_message(m, _server);
@@ -151,7 +151,7 @@ namespace {
 
 					usleep(1000);
 
-					now = microsec_clock::local_time();
+					now = microsec_clock::universal_time();
 				}
 			}
 			return interrupted ?  1 : _complete;

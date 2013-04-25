@@ -50,7 +50,7 @@ namespace {
 	}
 
 	struct is_outdated {
-		is_outdated() : _now(microsec_clock::local_time()), _timeout(seconds(5)) {
+		is_outdated() : _now(microsec_clock::universal_time()), _timeout(seconds(5)) {
 		}
 		bool operator()(const clusterstate::node& n) {
 			const bool od = _now - n._last_seen > _timeout;
@@ -125,7 +125,7 @@ void clusterstate::timeout_nodes() {
 }
 
 void clusterstate::update_seen(const uuid& ID) {
-	const ptime now = microsec_clock::local_time();
+	const ptime now = microsec_clock::universal_time();
 	FOREACH(node& n, _nodes) {
 		if (n._id == ID) {
 			n._last_seen = now;

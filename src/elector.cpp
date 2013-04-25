@@ -147,7 +147,7 @@ namespace koi {
 	}
 
 	bool elector::init() {
-		_starttime = microsec_clock::local_time();
+		_starttime = microsec_clock::universal_time();
 
 		load_state();
 
@@ -370,7 +370,7 @@ namespace koi {
 		// elect master that is already master
 		dirtyflag dirty = _repromote_master();
 
-		ptime now = microsec_clock::local_time();
+		ptime now = microsec_clock::universal_time();
 		// service information
 		int npromoted = 0, nfailed = 0;
 		dirty= _check_runner_health(now, npromoted, nfailed);
@@ -436,7 +436,7 @@ namespace koi {
 			inf->_state = hr->_state;
 			inf->_last_failed = ptime(min_date_time);
 		}
-		inf->_last_seen = microsec_clock::local_time();
+		inf->_last_seen = microsec_clock::universal_time();
 		if (inf->_state == S_Failed)
 			inf->_last_failed = inf->_last_seen;
 		inf->_uuid = sender_uuid;
