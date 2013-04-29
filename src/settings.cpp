@@ -196,7 +196,7 @@ namespace koi {
 		     _mainloop_sleep_time(units::micro/3),
 		     _master_dead_time(5*units::micro),
 		     _elector_startup_tolerance(5*units::micro),
-		     _elector_initial_promotion_delay(5*units::micro),
+		     _elector_initial_promotion_delay(60*units::micro),
 		     _service_auto_recover(120),
 		     _auto_recover_time(10*units::micro),
 		     _auto_recover_wait_factor(1),
