@@ -218,7 +218,8 @@ namespace koi {
 				forget_failure();
 			}
 		} // reset failcount after X seconds
-		else if (_failcount >= cfg._service_auto_recover &&
+		else if (cfg._service_auto_recover > 0 &&
+		         _failcount >= cfg._service_auto_recover &&
 		         now - _last_transition > microseconds(cfg._service_failcount_reset_time)) {
 			LOG_INFO("Resetting failcount (was %d)", _failcount);
 			_failcount = 0;
