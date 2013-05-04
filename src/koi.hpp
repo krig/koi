@@ -82,7 +82,7 @@ namespace koi {
 		S_Failed, // not running / not voting / not runnable
 		S_Disconnected,
 		S_Stopped, // not running/not voting
-		S_Offline, // running offline/not voting (not used yet)
+		S_Live, // running unpromotable/not voting
 		S_Slave, // running slave/not voting
 		S_Master,// running master/not voting
 		S_Elector, // voting but not executing services

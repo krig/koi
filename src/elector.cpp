@@ -89,7 +89,7 @@ namespace koi {
 	}
 
 	bool elector::runner_info::electable(const ptime& now, uint64_t promotion_timeout) const {
-		if (_state <= S_Stopped)
+		if (_state < S_Slave)
 			return false;
 
 		if (_mode == R_Passive)
@@ -206,7 +206,7 @@ namespace koi {
 			if (i->second._state > S_Disconnected) {
 				if (!i->second.alive(_emitter._nexus.cfg()._master_dead_time, now)) {
 					if ((_emitter.uptime(_starttime) > _emitter._nexus.cfg()._elector_initial_promotion_delay/units::milli) &&
-					    (_emitter.update(_leadertime) > _emitter._nexus.cfg()._elector_startup_tolerance/units::milli)) {
+					    (_emitter.uptime(_leadertime) > _emitter._nexus.cfg()._elector_startup_tolerance/units::milli)) {
 						LOG_INFO("%s (%s) not seen for %d seconds. Mark as offline.",
 						         i->second._name.c_str(), to_string(i->first).c_str(),
 						         (int)(_emitter._nexus.cfg()._master_dead_time/1e6));

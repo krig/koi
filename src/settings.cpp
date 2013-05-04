@@ -112,7 +112,7 @@ namespace koi {
 			"Failed",
 			"Disconnected",
 			"Stopped", // not running/not voting
-			"Offline", // running offline/not voting
+			"Live", // running/not voting
 			"Slave", // running slave/not voting
 			"Master",// running master/not voting
 			"Elector", // voting but not executing services

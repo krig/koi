@@ -53,6 +53,14 @@ namespace koi {
 		const settings* _settings;
 	};
 
+	enum ServicesStatus {
+		Status_Error, // Any service has failed
+		Status_Stopped, // Any service is stopped
+		Status_Live, // All services in [OK, Live, Slave, Master]
+		Status_Promotable, // All services in [OK, Slave, Master]
+		Status_Promoted // All services in [OK, Master]
+	};
+
 	struct service_manager {
 		struct service {
 			static const int NO_PRIORITY;
@@ -85,6 +93,7 @@ namespace koi {
 			string       _name; // echo if $KOISERVICES/00-echo/start is the start script
 			string       _path; // full path to service
 			int          _priority; // if script has a prio prefix, else NO_PRIO
+			bool         _promotable;
 			ServiceState _state;
 
 			enum ServiceFlags {
@@ -114,7 +123,7 @@ namespace koi {
 		void init(const char* servicesdir, const char* workingdir);
 		~service_manager();
 
-		bool update(const service_events& events, State state, uint64_t status_interval, uint64_t state_update_interval, bool maintenance_mode);
+		ServicesStatus update(const service_events& events, State state, uint64_t status_interval, uint64_t state_update_interval, bool maintenance_mode);
 
 		void start();
 		void stop();
@@ -142,6 +151,7 @@ namespace koi {
 		void update_list(service_events const& events);
 		bool verify_states(ptime now);
 		bool update_states(uint64_t state_update_interval, bool force = false);
+		ServicesStatus _calculate_service_status() const;
 		bool _update_failed_service(service& s);
 		bool _update_stopped_service(service& s);
 		bool _update_started_service(service& s);

@@ -180,8 +180,11 @@ namespace koi {
 		else if (_state > S_Slave) {
 			transition(S_Slave, "Demoted by elector.");
 		}
+		else if (_state == S_Slave || _state == S_Live) {
+			// do nothing
+		}
 		else if (_state >= S_Disconnected) {
-			transition(S_Slave, "Connected to elector.");
+			transition(S_Live, "Connected to elector.");
 		}
 	}
 
@@ -197,7 +200,7 @@ namespace koi {
 			transition(S_Stopped, "Manually stopped.");
 		}
 		else if (_enabled && (_state == S_Disconnected || _state == S_Stopped)) {
-			transition(S_Slave, "Connected to elector (low uptime).");
+			transition(S_Live, "Connected to elector (low uptime).");
 		}
 	}
 
@@ -233,12 +236,20 @@ namespace koi {
 
 	void runner::_check_service_status() {
 		// run service status check (if the time has come)
-		if (!_services.update(service_events(_emitter._nexus.cfg()), _state,
-		                      _emitter._nexus.cfg()._status_interval,
-		                      _emitter._nexus.cfg()._state_update_interval,
-		                      in_maintenance_mode())) {
+		const ServicesStatus status = _services.update(
+			service_events(_emitter._nexus.cfg()), _state,
+			_emitter._nexus.cfg()._status_interval,
+			_emitter._nexus.cfg()._state_update_interval,
+			in_maintenance_mode());
+		if (status == Status_Error) {
 			LOG_ERROR("* Service failure detected (failcount=%d) *", _failcount);
 			transition(S_Failed, "Stopping all services running on this node.");
+		}
+		else if (_state == S_Live && (status >= Status_Promotable)) {
+			transition(S_Slave, "Status is promotable");
+		}
+		else if (_state > S_Live && (status < Status_Promotable)) {
+			transition(S_Live, "Node is not promotable");
 		}
 	}
 
@@ -358,6 +369,12 @@ namespace koi {
 		case S_Stopped:
 			if (_state > S_Stopped)
 				_services.stop();
+			break;
+		case S_Live:
+			if (_state > S_Slave)
+				_services.demote();
+			else if (_state > S_Failed)
+				_services.start();
 			break;
 		case S_Slave:
 			if (_state > S_Slave)

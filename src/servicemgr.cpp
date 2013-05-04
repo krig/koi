@@ -35,7 +35,8 @@ namespace {
 		EC_Error = 1,
 		EC_Master = 90,
 		EC_Slave = 91,
-		EC_Stopped = 92
+		EC_Stopped = 92,
+		EC_Live = 93
 	};
 
 	const char* get_servicename(const char* name) {
@@ -130,7 +131,7 @@ namespace koi {
 		_logproxy.create();
 	}
 
-	bool service_manager::update(const service_events& events, State state, uint64_t status_interval, uint64_t state_update_interval, bool maintenance_mode) {
+	ServicesStatus service_manager::update(const service_events& events, State state, uint64_t status_interval, uint64_t state_update_interval, bool maintenance_mode) {
 		ptime now = microsec_clock::universal_time();
 
 		// Update environment variables used by services
@@ -145,20 +146,52 @@ namespace koi {
 				LOG_TRACE("Skipping status check (maintenance mode)");
 			}
 			else if (!status(events)) {
-				return false;
+				return Status_Error;
 			}
 		}
 
-		if (maintenance_mode) {
-			return true;
-		}
+		ServicesStatus ret = _calculate_service_status();
 
-		if (!update_states(state_update_interval)) {
-			LOG_TRACE("servicemgr::update_states() failure");
-			return false;
+		if (!maintenance_mode) {
+			if (!update_states(state_update_interval)) {
+				LOG_TRACE("servicemgr::update_states() failure");
+				ret = Status_Error;
+			}
 		}
+		return ret;
+	}
 
-		return true;
+	ServicesStatus service_manager::_calculate_service_status() const {
+		int nfailed = 0,
+			nstopped = 0,
+			nstarted = 0,
+			npromotable = 0,
+			npromoted = 0;
+		for (auto i = _services.begin(); i != _services.end(); ++i) {
+			const service& s = i->second;
+			const ServiceState state = s._state;
+			if (state == Svc_Failed || state == Svc_Failing) {
+				++nfailed;
+			}
+			if (state == Svc_Stopped || state == Svc_Stopping) {
+				++nstopped;
+			}
+			if (state >= Svc_Starting)
+				++nstarted;
+			if (state >= Svc_Promoting)
+				++npromoted;
+			if (s._promotable)
+				++npromotable;
+		}
+		if (nfailed)
+			return Status_Error;
+		else if (nstopped)
+			return Status_Stopped;
+		else if (npromotable < nstarted)
+			return Status_Live;
+		else if (npromoted < nstarted)
+			return Status_Promotable;
+		return Status_Promoted;
 	}
 
 	void service_manager::start() {
@@ -404,6 +437,9 @@ namespace koi {
 
 	bool service_manager::check_exitcode(service& s) {
 		if (_is_masterslave_status(s)) {
+			s._promotable = (s._state >= Svc_Started &&
+			                 (s._running.exitcode == EC_Slave ||
+			                  s._running.exitcode == EC_Master));
 			if (!_check_masterslave_status(s)) {
 				LOG_ERROR("%s:%s does not match node state %s",
 				          s._name.c_str(),
@@ -413,6 +449,7 @@ namespace koi {
 			}
 			return true;
 		}
+		s._promotable = (s._running.exitcode == 0 && (s._state >= Svc_Started));
 		return s._running.exitcode == 0;
 	}
 
@@ -421,7 +458,7 @@ namespace koi {
 		return (s._event != 0) &&
 			(s._event->_name == "status") &&
 			(ecode >= EC_Master) &&
-			(ecode <= EC_Stopped);
+			(ecode <= EC_Live);
 	}
 
 	bool service_manager::_check_masterslave_status(service& s) const {
@@ -431,6 +468,7 @@ namespace koi {
 				s._state = Svc_Promoted;
 			break;
 		case EC_Slave:
+		case EC_Live:
 			if (s._state == Svc_Promoted ||
 			    s._state < Svc_Stopping)
 				s._state = Svc_Started;
@@ -693,6 +731,7 @@ namespace koi {
 	                                      _name(),
 	                                      _path(),
 	                                      _priority(NO_PRIORITY),
+	                                      _promotable(false),
 	                                      _state(Svc_Stopped),
 	                                      _service_flags(0) {
 	}
@@ -703,6 +742,7 @@ namespace koi {
 		                                _name(name),
 		                                _path(path),
 		                                _priority(NO_PRIORITY),
+		                                _promotable(false),
 		                                _state(Svc_Stopped),
 		                                _service_flags(0) {
 	}
@@ -956,6 +996,12 @@ namespace koi {
 		if (_state != state) {
 			LOG_INFO("%s[%s->%s]", _name.c_str(), service_state_string(_state), service_state_string(state));
 			_state = state;
+
+			if (!(_state == Svc_Started ||
+			      _state == Svc_Demoting ||
+			      _state == Svc_Promoting ||
+			      _state == Svc_Promoted))
+				_promotable = false;
 		}
 	}
 

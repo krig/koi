@@ -29,10 +29,17 @@ namespace {
 		State to;
 	};
 
-	void test_transition(runner& r, transition* tbl, size_t len) {
+	void test_transition(const char* tname, runner& r, transition* tbl, size_t len) {
 		for (size_t i = 0; i < len; ++i) {
 			r._state = tbl[i].from;
 			r._check_elector_transition();
+			if (r._state != tbl[i].to) {
+				printf("%s: from %s expected %s, was %s\n",
+				          tname,
+				          state_to_string(tbl[i].from),
+				          state_to_string(tbl[i].to),
+				          state_to_string(r._state));
+			}
 			REQUIRE(r._state == tbl[i].to);
 		}
 	}
@@ -55,16 +62,18 @@ TEST_CASE("runner/elector_transition", "Verify elector induced state transitions
 
 	transition master_transitions[] = {
 		{ S_Failed, S_Failed },
-		{ S_Disconnected, S_Slave },
+		{ S_Disconnected, S_Live },
 		{ S_Stopped, S_Master },
+		{ S_Live, S_Master },
 		{ S_Slave, S_Master },
 		{ S_Master, S_Master }
 	};
 
 	transition nonmaster_transitions[] = {
 		{ S_Failed, S_Failed },
-		{ S_Disconnected, S_Slave },
-		{ S_Stopped, S_Slave },
+		{ S_Disconnected, S_Live },
+		{ S_Stopped, S_Live },
+		{ S_Live, S_Live },
 		{ S_Slave, S_Slave },
 		{ S_Master, S_Slave }
 	};
@@ -73,6 +82,7 @@ TEST_CASE("runner/elector_transition", "Verify elector induced state transitions
 		{ S_Failed, S_Failed },
 		{ S_Disconnected, S_Stopped },
 		{ S_Stopped, S_Stopped },
+		{ S_Live, S_Stopped },
 		{ S_Slave, S_Stopped },
 		{ S_Master, S_Stopped }
 	};
@@ -80,17 +90,17 @@ TEST_CASE("runner/elector_transition", "Verify elector induced state transitions
 	r._enabled = true;
 
 	r._elector._master_uuid = cfg._uuid;
-	test_transition(r, master_transitions, ASIZE(master_transitions));
+	test_transition("master", r, master_transitions, ASIZE(master_transitions));
 
 	r._elector._master_uuid = uuid();
-	test_transition(r, nonmaster_transitions, ASIZE(nonmaster_transitions));
+	test_transition("nonmaster", r, nonmaster_transitions, ASIZE(nonmaster_transitions));
 
 	r._enabled = false;
 
 	r._elector._master_uuid = cfg._uuid;
-	test_transition(r, disabled_transitions, ASIZE(disabled_transitions));
+	test_transition("disabled-1", r, disabled_transitions, ASIZE(disabled_transitions));
 	r._elector._master_uuid = uuid();
-	test_transition(r, disabled_transitions, ASIZE(disabled_transitions));
+	test_transition("disabled-2", r, disabled_transitions, ASIZE(disabled_transitions));
 
 	r.stop();
 }
