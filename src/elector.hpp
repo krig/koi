@@ -102,7 +102,7 @@ namespace koi {
 		elector(nexus& route);
 		~elector();
 
-		bool init();
+		bool init(const ptime& starttime);
 		void start();
 		void stop();
 		void update();
@@ -149,6 +149,7 @@ namespace koi {
 		runners::iterator _target_master; //this node should be master
 		bool              _manual_master_mode; // the master has been demoted; manual promotion is required
 		ptime             _starttime;
+		ptime             _leadertime;
 		ptime             _last_state_save;
 		uint32_t          _state_sum;
 	};

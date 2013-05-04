@@ -42,7 +42,7 @@ TEST_CASE("elector/promote", "test successful node promotion") {
 	nexus ro(io_service, cfg);
 
 	elector a(ro);
-	ok = a.init();
+	ok = a.init(microsec_clock::universal_time());
 	REQUIRE(ok);
 
 	a.start();

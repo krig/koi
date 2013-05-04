@@ -86,6 +86,7 @@ namespace koi {
 		runner_rpc_functions  _runner_rpc;
 		stringset             _redirecting_rpc;
 		ptime                 _cluster_t;
+		ptime                 _starttime;
 	};
 
 }

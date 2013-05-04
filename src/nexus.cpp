@@ -503,6 +503,7 @@ namespace koi {
 		}
 
 		_cluster_t = min_date_time;
+		_starttime = microsec_clock::universal_time();
 
 		init_links();
 		return true;
@@ -515,7 +516,7 @@ namespace koi {
 		// or update() instead)
 		if (!_impl->_elector) {
 			auto a = boost::shared_ptr<elector>(new elector(*this));
-			if (!a->init()) {
+			if (!a->init(_starttime)) {
 				LOG_ERROR("Failed to start elector");
 				throw runtime_error("Failed to start elector on node. Terminating.");
 			}

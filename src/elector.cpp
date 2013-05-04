@@ -146,8 +146,9 @@ namespace koi {
 		save_state();
 	}
 
-	bool elector::init() {
-		_starttime = microsec_clock::universal_time();
+	bool elector::init(const ptime& starttime) {
+		_starttime = starttime;
+		_leadertime = microsec_clock::universal_time();
 
 		load_state();
 
@@ -204,7 +205,8 @@ namespace koi {
 		for (auto i = _runners.begin(); i != _runners.end(); ++i) {
 			if (i->second._state > S_Disconnected) {
 				if (!i->second.alive(_emitter._nexus.cfg()._master_dead_time, now)) {
-					if (_emitter.uptime(_starttime) > _emitter._nexus.cfg()._elector_initial_promotion_delay/units::milli) {
+					if ((_emitter.uptime(_starttime) > _emitter._nexus.cfg()._elector_initial_promotion_delay/units::milli) &&
+					    (_emitter.update(_leadertime) > _emitter._nexus.cfg()._elector_startup_tolerance/units::milli)) {
 						LOG_INFO("%s (%s) not seen for %d seconds. Mark as offline.",
 						         i->second._name.c_str(), to_string(i->first).c_str(),
 						         (int)(_emitter._nexus.cfg()._master_dead_time/1e6));
@@ -261,7 +263,8 @@ namespace koi {
 		        _master != _runners.end() ||
 		        _manual_master_mode ||
 		        !_emitter._nexus.has_quorum() ||
-		        _emitter.uptime(_starttime) < _emitter._nexus.cfg()._elector_initial_promotion_delay/units::milli);
+		        _emitter.uptime(_starttime) < _emitter._nexus.cfg()._elector_initial_promotion_delay/units::milli ||
+		        _emitter.uptime(_leadertime) < _emitter._nexus.cfg()._elector_startup_tolerance/units::milli);
 	}
 
 	bool elector::_elect_target_master() {
