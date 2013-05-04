@@ -812,7 +812,9 @@ namespace koi {
 	}
 
 	void service_manager::service::report_fail() {
-		LOG_ERROR("%s:%s returned %d!", _name.c_str(), _event->_name.c_str(), _running.exitcode);
+		LOG_ERROR("%s:%s returned %d!", _name.c_str(),
+		          _event ? _event->_name.c_str() : "?",
+		          _running.exitcode);
 		_service_flags |= IS_FAILED;
 	}
 

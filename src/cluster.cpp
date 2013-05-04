@@ -245,7 +245,7 @@ void cluster::set_leader(const message& m) {
 
 void cluster::update_state(const message& m) {
 	const auto hb = m.body<msg::heartbeat>();
-	if (!hb->_elector.is_nil()) {
+	if (hb && !hb->_elector.is_nil()) {
 		bool changed = false;
 		if (_state._elector != hb->_elector) {
 			_state._elector = hb->_elector;
