@@ -1,0 +1,85 @@
+#!/bin/sh
+#
+# Liveness
+#
+# Example service demonstrating how the status
+# check can return the KOI_LIVE value if the
+# service is temporarily not promotable despite
+# being otherwise in the running state.
+# This could for example be the state the process
+# is in while syncing its database from the current
+# master node.
+#
+KOI_MASTER=90
+KOI_SLAVE=91
+KOI_STOPPED=92
+KOI_LIVE=93
+
+start() {
+  echo "starting slowly.."
+  touch liveness-syncing
+  sleep 2
+}
+
+stop() {
+  echo "stopping.."
+  sleep 1
+  rm -f liveness-syncing
+  rm -f liveness-master
+}
+
+promote() {
+  echo "promoting"
+  sleep 1
+  touch liveness-master
+}
+
+demote() {
+  echo "demoting"
+  sleep 1
+  rm -f liveness-master
+}
+
+status() {
+	if [[ -f liveness-syncing ]]; then
+		echo "syncing"
+		let R=$RANDOM%6
+		if [ "$R" -eq "0" ]; then
+			echo "Syncing almost complete!"
+			rm -f liveness-syncing
+		fi
+		exit $KOI_LIVE
+	elif [[ -f liveness-master ]]; then
+		echo "master"
+		exit $KOI_MASTER
+	else
+		let R=$RANDOM%6
+		if [ "$R" -eq "0" ]; then
+			echo "Out of sync!"
+			touch liveness-syncing
+			exit $KOI_LIVE
+		fi
+		exit $KOI_SLAVE
+	fi
+}
+
+case "$1" in
+ start)
+   start
+ ;;
+ stop)
+   stop
+ ;;
+ status)
+   status
+ ;;
+ promote)
+   promote
+ ;;
+ demote)
+   demote
+ ;;
+ *)
+   exit 0
+esac
+
