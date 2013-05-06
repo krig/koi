@@ -175,7 +175,12 @@ namespace koi {
 		}
 		else if (_elector._master_uuid == _emitter._nexus.cfg()._uuid &&
 		         _state >= S_Stopped) {
-			transition(S_Master, "Elector assigned master.");
+			if (_state < S_Live) {
+				transition(S_Live, "Elector assigned master.");
+			}
+			else {
+				transition(S_Master, "Elector assigned master.");
+			}
 		}
 		else if (_state > S_Slave) {
 			transition(S_Slave, "Demoted by elector.");
