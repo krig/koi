@@ -7,15 +7,14 @@ For license information, see LICENSE.
 
 ## Introduction
 
-Koi is an internal tool I threw together at Procera after years of
-frustration trying to get Pacemaker to do what we wanted. The main
-purpose of koi is to maintain a small cluster of machines (usually 3
-or 5) where a subset of those machines run _services_. Services
-usually consist of a set of bash scripts that start, stop and monitor
-some other piece of software. This software only runs in active mode
-on one of the machines, with the other nodes functioning as backup
-servers. In the event of a monitoring error, the software is stopped
-on the faulty node and started on another machine.
+Koi is a self-contained cluster management software package, written
+in C++. The main purpose of koi is to maintain a small cluster of
+machines (usually 3 or 5) where a subset of those machines run
+_services_. Services usually consist of a set of bash scripts that
+start, stop and monitor some other piece of software. This software
+only runs in active mode on one of the machines, with the other nodes
+functioning as backup servers. In the event of a monitoring error, the
+software is stopped on the faulty node and started on another machine.
 
 This is the first public release of koi, and it is a little rough
 around the edges. There isn't much documentation or much of a guide

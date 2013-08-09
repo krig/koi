@@ -1,32 +1,35 @@
 #!/usr/bin/env python
 
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE
 from os.path import basename
 from waflib import Logs
-import os, sys
+import os
+import sys
+
 
 def _conf_get_git_rev():
     """
     Get the SHA1 of git HEAD
     """
-    devnull = open('/dev/null', 'w')
-    p = Popen(['git', 'describe'], stdout=PIPE, stderr=devnull)
-    stdout = p.communicate()[0]
-    if p.returncode == 0:
-        return stdout.strip()
-    p = Popen(['git', 'rev-parse', 'HEAD'], stdout=PIPE, \
+    try:
+        devnull = open('/dev/null', 'w')
+        p = Popen(['git', 'describe'], stdout=PIPE, stderr=devnull)
+        stdout = p.communicate()[0]
+        if p.returncode == 0:
+            return stdout.strip()
+        p = Popen(['git', 'rev-parse', 'HEAD'], stdout=PIPE,
                   stderr=devnull)
-    stdout = p.communicate()[0]
+        stdout = p.communicate()[0]
 
-    if p.returncode == 0:
-        return stdout.strip()[:8]
-    else:
-        return "%s %d "%(stdout, p.returncode)
-    return 'norevision'
+        if p.returncode == 0:
+            return stdout.strip()[:8]
+    except OSError:
+        pass
+    return 'none'
 
 top = '.'
 out = 'bin'
-APPNAME='koinode'
+APPNAME = 'koinode'
 
 _sources = [
     'settings.cpp',
@@ -73,21 +76,27 @@ if 'SYSINCLUDES' in os.environ:
         sysincludes.append('-isystem')
         sysincludes.append(si)
 
+
 def options(opt):
     opt.load(['compiler_c', 'compiler_cxx', 'waf_unit_test', 'boost'])
+
 
 def configure(conf):
     conf.check_waf_version(mini='1.7.5')
     conf.load(['compiler_c', 'compiler_cxx', 'waf_unit_test', 'boost'])
     try:
         try:
-            conf.check(header_name=['sys/types.h', 'sys/wait.h'], cxxflags=cxxflags, features='cxx cxxprogram', mandatory=True)
+            conf.check(header_name=['sys/types.h', 'sys/wait.h'],
+                       cxxflags=cxxflags,
+                       features='cxx cxxprogram',
+                       mandatory=True)
         except conf.errors.WafError, e:
             Logs.warn('GCC 4.4+ or clang 3.1+ with C++0x/C++11 support required')
             raise e
 
         try:
-            conf.check_boost(lib=['system', 'regex', 'program_options', 'date_time'], mt=True, static=False)
+            conf.check_boost(lib=['system', 'regex', 'program_options', 'date_time'],
+                             mt=True, static=False)
         except conf.errors.WafError, e:
             Logs.warn('boost 1.49+ required: see http://boost.org')
             raise e
@@ -96,59 +105,61 @@ def configure(conf):
         Logs.info('To specify an alternate compiler, use CC and CXX environment variables')
         raise e
 
+
 def _tests(bld):
-    import os, glob
+    import os
+    import glob
 
     testfiles = glob.glob(os.path.join('test', '*_test.cpp'))
 
     bld.program(
-        source = testfiles + ['test/test.cpp'],
-        target = 'tests',
-        includes = ['.', 'src', 'catch/include'],
-        features = 'test',
+        source=testfiles + ['test/test.cpp'],
+        target='tests',
+        includes=['.', 'src', 'catch/include'],
+        features='test',
         cxxflags=cxxflags + ['-Wno-shadow'],
-        linkflags = ldflags,
-        lib = ['pthread'],
-        install_path = None,
+        linkflags=ldflags,
+        lib=['pthread'],
+        install_path=None,
         use='common_objects BOOST')
+
 
 def build(bld):
     sources = ['src/'+s for s in _sources]
     bld.objects(source=sources,
                 cxxflags=cxxflags + ['-Wshadow'],
                 target='common_objects',
-                includes = '.',
+                includes='.',
                 use="BOOST")
 
     _tests(bld)
 
     bld(
-        features = 'subst',
-        source = 'scripts/version.template',
-        target = 'version.c',
-        REVISION = _conf_get_git_rev())
+        features='subst',
+        source='scripts/version.template',
+        target='version.c',
+        REVISION=_conf_get_git_rev())
 
     bld.program(
         source=['src/koi.cpp', 'src/run.cpp', 'version.c'],
         target='koinode',
-        lib = ['pthread'],
+        lib=['pthread'],
         cxxflags=cxxflags + ['-Wshadow', '-Wswitch-default'],
         linkflags=ldflags,
         use='common_objects BOOST',
-        install_path = '${PREFIX}/sbin',
-        includes = '.')
+        install_path='${PREFIX}/sbin',
+        includes='.')
 
     bld.program(
         source=['src/cli.cpp', 'version.c'],
         target='koi',
-        lib = ['pthread'],
+        lib=['pthread'],
         cxxflags=cxxflags + ['-Wshadow', '-Wswitch-default'],
         linkflags=ldflags,
         use='common_objects BOOST',
-        install_path = '${PREFIX}/sbin',
-        includes = '.')
+        install_path='${PREFIX}/sbin',
+        includes='.')
 
-    from waflib.Tools import waf_unit_test
     bld.add_post_fun(test_summary)
 
     bld.install_files('${PREFIX}/share/koi', 'scripts/koi-service.sh')
@@ -160,11 +171,13 @@ def build(bld):
     if os.path.exists('doc/koi.1'):
         bld.install_files('${PREFIX}/share/man/man1/', 'doc/koi.1')
 
+
 def lastline(s):
     try:
         return [l for l in s.splitlines() if len(l)][-1]
     except:
         return ''
+
 
 def test_summary(bld):
     from waflib import Logs
