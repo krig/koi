@@ -30,6 +30,7 @@ def _conf_get_git_rev():
 top = '.'
 out = 'bin'
 APPNAME = 'koinode'
+_disable_tests = '--notests' in sys.argv
 
 _sources = [
     'settings.cpp',
@@ -132,7 +133,8 @@ def build(bld):
                 includes='.',
                 use="BOOST")
 
-    _tests(bld)
+    if not _disable_tests:
+        _tests(bld)
 
     bld(
         features='subst',
@@ -160,7 +162,8 @@ def build(bld):
         install_path='${PREFIX}/sbin',
         includes='.')
 
-    bld.add_post_fun(test_summary)
+    if not _disable_tests:
+        bld.add_post_fun(test_summary)
 
     bld.install_files('${PREFIX}/share/koi', 'scripts/koi-service.sh')
     bld.install_files('${DESTDIR}/etc/koi', 'configs/example.conf')
