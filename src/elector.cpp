@@ -671,7 +671,7 @@ namespace koi {
 		auto* su = m->set_body<msg::stateupdate>();
 		m->_seqnr = _emitter._current_tick;
 
-		su->_uptime = _emitter.uptime(_starttime);
+		su->_uptime = _emitter.uptime(_leadertime);
 		su->_maintenance = _emitter._nexus.cfg()._cluster_maintenance;
 
 		if (_master != _runners.end()) {
