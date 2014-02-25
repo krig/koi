@@ -63,7 +63,7 @@ TEST_CASE("runner/elector_transition", "Verify elector induced state transitions
 	transition master_transitions[] = {
 		{ S_Failed, S_Failed },
 		{ S_Disconnected, S_Live },
-		{ S_Stopped, S_Master },
+		{ S_Stopped, S_Live },
 		{ S_Live, S_Master },
 		{ S_Slave, S_Master },
 		{ S_Master, S_Master }
