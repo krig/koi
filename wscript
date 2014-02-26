@@ -121,7 +121,7 @@ def _tests(bld):
         target='tests',
         includes=['.', 'src', 'catch/include'],
         features='test',
-        cxxflags=cxxflags,
+        cxxflags=cxxflags + ['-Wno-error=switch-default'],
         linkflags=ldflags,
         lib=['pthread'],
         install_path=None,
