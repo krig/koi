@@ -279,8 +279,10 @@ namespace koi {
 		_emitter.update();
 
 		_check_timeouts(now);
-		_update_elector_state(now);
-		_check_recovery(now);
+		if (!_services.is_disabled()) {
+			_update_elector_state(now);
+			_check_recovery(now);
+		}
 		_check_service_status();
 	}
 

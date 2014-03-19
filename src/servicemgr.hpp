@@ -170,6 +170,7 @@ namespace koi {
 		bool complete_transition(ptime now, service& s);
 		bool check_exitcode(service& s);
 		void toggle_logproxy();
+		bool is_disabled();
 
 		bool resolves(ServiceState state, ServiceAction action) const;
 		bool matches(ServiceState state, ServiceAction action) const;
