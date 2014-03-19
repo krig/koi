@@ -133,6 +133,7 @@ namespace koi {
 
 	ServicesStatus service_manager::update(const service_events& events, State state, uint64_t status_interval, uint64_t state_update_interval, bool maintenance_mode) {
 		ptime now = microsec_clock::universal_time();
+		bool disabled_earlier = is_disabled();
 
 		// Update environment variables used by services
 		::setenv("KOI_IS_PROMOTED", (_target_action == Svc_Promote) ? "1" : "0", 1);
@@ -151,6 +152,9 @@ namespace koi {
 		}
 
 		ServicesStatus ret = _calculate_service_status();
+
+		if (!disabled_earlier && is_disabled())
+			return Status_Error;
 
 		if (!maintenance_mode) {
 			if (!update_states(state_update_interval)) {
@@ -667,6 +671,14 @@ namespace koi {
 			inf._failed = s.is_failed();
 			hr->_services.push_back(inf);
 		}
+	}
+
+	bool service_manager::is_disabled() {
+		FOREACH(auto& s, _services) {
+			if(s.second.is_disabled())
+				return true;
+		}
+		return false;
 	}
 
 	bool service_manager::allow_start(const service& a) const {
