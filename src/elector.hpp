@@ -152,6 +152,7 @@ namespace koi {
 		ptime             _leadertime;
 		ptime             _last_state_save;
 		uint32_t          _state_sum;
+		bool              _lost_quorum;
 	};
 
 }

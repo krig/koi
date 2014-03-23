@@ -149,6 +149,7 @@ namespace koi {
 	bool elector::init(const ptime& starttime) {
 		_starttime = starttime;
 		_leadertime = microsec_clock::universal_time();
+		_lost_quorum = false;
 
 		load_state();
 
@@ -258,13 +259,27 @@ namespace koi {
 	}
 
 	bool elector::_should_skip_election(int npromoted) {
-		return (npromoted > 0 ||
-		        _runners.empty() ||
-		        _master != _runners.end() ||
-		        _manual_master_mode ||
-		        !_emitter._nexus.has_quorum() ||
-		        _emitter.uptime(_starttime) < _emitter._nexus.cfg()._elector_initial_promotion_delay/units::milli ||
-		        _emitter.uptime(_leadertime) < _emitter._nexus.cfg()._elector_startup_tolerance/units::milli);
+		if (npromoted > 0 || _runners.empty() || _master != _runners.end() || _manual_master_mode)
+			return true;
+
+		if (!_emitter._nexus.has_quorum()) {
+			_lost_quorum = true;
+			_leadertime = microsec_clock::universal_time();
+			return true;
+		}
+
+		if (_lost_quorum) {
+			LOG_TRACE("Gain of quorum.");
+			_lost_quorum = false;
+			_leadertime = microsec_clock::universal_time();
+		}
+
+		if (_emitter.uptime(_starttime) < _emitter._nexus.cfg()._elector_initial_promotion_delay/units::milli ||
+				_emitter.uptime(_leadertime) < _emitter._nexus.cfg()._elector_startup_tolerance/units::milli) {
+			return true;
+		}
+
+		return false;
 	}
 
 	bool elector::_elect_target_master() {
