@@ -98,8 +98,6 @@ namespace koi {
 	};
 
 	inline namespace internal {
-		       static const int Number = SmallInt|Uint8|Uint16|Int;
-
 		       inline bool is_fixed_size(uint8_t t) {
 			       return t < String;
 		       }
