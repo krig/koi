@@ -552,20 +552,9 @@ namespace koi {
 	}
 
 	bool service_manager::_update_failed_service(service& s) {
-		if (s._state > Svc_Stopped) {
-			if (!s.stop(_logproxy.inpipe)) {
-				LOG_TRACE("stop() failed");
-				if (!s.fail(_logproxy.inpipe)) {
-					LOG_TRACE("fail() failed");
-				}
-				return false;
-			}
-		}
-		else if (s._state <= Svc_Stopped) {
-			if (!s.fail(_logproxy.inpipe)) {
-				LOG_TRACE("fail() failed");
-				return false;
-			}
+		if (!s.fail(_logproxy.inpipe)) {
+			LOG_TRACE("fail() failed");
+			return false;
 		}
 		return true;
 	}
@@ -988,13 +977,21 @@ namespace koi {
 			LOG_WARN("%s:fail(): action running: %s", _name.c_str(), _event->_name.c_str());
 		}
 		if (_state > Svc_Failing) {
-			//stop();
 			if (_service_flags & HAS_FAIL) {
+				bool was_started = (_state > Svc_Stopped);
+
 				transition(Svc_Failing);
 				if (!launch_command("failed", inpipe)) {
 					LOG_WARN("Failed to execute %s%s", _path.c_str(), "/failed");
 					return false;
 				}
+				if (was_started &&
+				    (_service_flags & HAS_STOP) &&
+				    (!launch_command("stop", inpipe))) {
+					LOG_WARN("Failed to execute %s%s", _path.c_str(), "/stop");
+					return false;
+				}
+
 			}
 			else if (_state > Svc_Stopped) {
 				return stop(inpipe);
