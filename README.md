@@ -139,3 +139,16 @@ nodes.
   [bully]: http://en.wikipedia.org/wiki/Bully_algorithm "Wikipedia"
   [waf]: http://code.google.com/p/waf/ "waf"
   [runit]: http://smarden.org/runit/ "runit"
+
+## Similar software
+
+I am not actively developing or maintaining koi (though if you have a
+patch, I will certainly look at it), so here is a brief list of other
+software which may suit your needs:
+
+* [Pacemaker][pacemaker] - The main cluster management stack for GNU/Linux
+* [back-to-work][btw] - A cluster and distributed lock written in posix shell (!)
+* [kubernetes][kubernetes] - Container orchestration
+
+  [pacemaker]: http://clusterlabs.org "Pacemaker"
+  [btw]: https://github.com/nackstein/back-to-work "back-to-work"
