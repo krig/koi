@@ -152,3 +152,5 @@ software which may suit your needs:
 
   [pacemaker]: http://clusterlabs.org "Pacemaker"
   [btw]: https://github.com/nackstein/back-to-work "back-to-work"
+  [kubernetes]: http://kubernetes.io "Kubernetes"
+  
