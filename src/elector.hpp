@@ -137,6 +137,8 @@ namespace koi {
 		void rpc_failures(msg::request* rq, msg::response::values& response);
 		void rpc_maintenance(msg::request* rq, msg::response::values& response);
 
+		bool in_maintenance_mode() const;
+
 		void save_state();
 		void load_state();
 

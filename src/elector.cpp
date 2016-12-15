@@ -232,6 +232,9 @@ namespace koi {
 	}
 
 	bool elector::_check_master_health() {
+		if (in_maintenance_mode ()) {
+			return false;
+		}
 		if (_master != _runners.end()) {
 			bool demote = false;
 
@@ -272,6 +275,10 @@ namespace koi {
 			LOG_TRACE("Gain of quorum.");
 			_lost_quorum = false;
 			_leadertime = microsec_clock::universal_time();
+		}
+
+		if (in_maintenance_mode ()) {
+			return true;
 		}
 
 		if (_emitter.uptime(_starttime) < _emitter._nexus.cfg()._elector_initial_promotion_delay/units::milli ||
@@ -618,6 +625,10 @@ namespace koi {
 		else {
 			response["msg"] = "Error: bad argument (expecting on|off)";
 		}
+	}
+
+	bool elector::in_maintenance_mode() const {
+		return _emitter._nexus.cfg()._cluster_maintenance;
 	}
 
 	inline bool evaluate_candidate(elector::runners::iterator oldc,
