@@ -57,6 +57,7 @@ void network::send(const uuid& ID, const string& name, const clusterstate& s, in
 	copy(s._nodes.begin(), s._nodes.end(), back_inserter(hb->_nodes));
 	hb->_elector = s._elector;
 	hb->_master = s._master;
+	hb->_cluster_maintenance = _nexus.cfg()._cluster_maintenance;
 	_nexus.send(m);
 }
 

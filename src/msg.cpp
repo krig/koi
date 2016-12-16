@@ -156,7 +156,6 @@ namespace {
 
 	void write_archive(archive& a, const stateupdate* su) {
 		a << su->_uptime
-		  << su->_maintenance
 		  << su->_master_uuid;
 		if (!su->_master_uuid.is_nil()) {
 			a << su->_master_last_seen
@@ -167,7 +166,6 @@ namespace {
 
 	void read_archive(reader& r, stateupdate* su) {
 		r >> su->_uptime
-		  >> su->_maintenance
 		  >> su->_master_uuid;
 		if (!su->_master_uuid.is_nil()) {
 			r >> su->_master_last_seen
@@ -191,6 +189,7 @@ namespace {
 			a << true
 			  << hb->_elector
 			  << hb->_master
+			  << hb->_cluster_maintenance
 			  << (int)hb->_nodes.size();
 			FOREACH(heartbeat::node const& n, hb->_nodes) {
 				a << n._id << n._name << n._last_seen << n._flags << n._addrs;
@@ -208,6 +207,7 @@ namespace {
 			int nnodes;
 			r >> hb->_elector
 			  >> hb->_master
+			  >> hb->_cluster_maintenance
 			  >> nnodes;
 			// TODO: range-check nnodes
 			for (int i = 0; i < nnodes; ++i) {
