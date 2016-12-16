@@ -314,16 +314,6 @@ namespace koi {
 		_elector._uptime = su->_uptime;
 
 		if (_elector._uuid != _emitter._nexus.cfg()._uuid) {
-			// TODO FIXME BUG
-			// Setting the node that's in maintenance, in maintenance,
-			// will spread that state only if the elector happens to
-			// be running on that node...
-			// If the elector node is THIS node, we are already up to date
-			if (_emitter._nexus.cfg()._cluster_maintenance != su->_maintenance) {
-				_emitter._nexus.cfg()._cluster_maintenance = su->_maintenance;
-				LOG_INFO("Maintenance mode: %s", (su->_maintenance ? "ON" : "OFF"));
-			}
-
 			// Update the masterstate, so that in case of failover,
 			// we're up to date. Don't do this if we're the elector
 			// since the elector will be updating the masterstate.

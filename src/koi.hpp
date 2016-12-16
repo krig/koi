@@ -16,7 +16,7 @@
 */
 #pragma once
 
-#define KOI_VERSION 4
+#define KOI_VERSION 5
 
 #include <stdlib.h>
 #include <stdint.h>

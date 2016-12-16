@@ -39,7 +39,7 @@ namespace koi {
 			Leader = 2
 		};
 
-		cluster(nexus& route, const settings& cfg);
+		cluster(nexus& route, settings& cfg);
 		~cluster();
 
 		bool settings_changed(const settings& newcfg, const settings& oldcfg);
@@ -72,7 +72,7 @@ namespace koi {
 		action         _on_up;
 		action         _on_down;
 		action         _on_state_change;
-		const settings&_cfg;
+		settings&      _cfg;
 
 		uuid           _leader;
 		int64_t        _t;

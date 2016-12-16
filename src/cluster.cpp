@@ -50,7 +50,7 @@ const char* koi::nodeflags_to_string(int flags) {
 	return fval[flags];
 }
 
-cluster::cluster(nexus& route, const settings& cfg)
+cluster::cluster(nexus& route, settings& cfg)
 	: _state(),
 	  _network(route, cfg._cluster_id),
 	  _on_up(),
@@ -265,6 +265,15 @@ void cluster::update_state(const message& m) {
 			                         n._name,
 			                         n._flags,
 			                         ep);
+		}
+		// TODO FIXME BUG
+		// Setting the node that's in maintenance, in maintenance,
+		// will spread that state only if the elector happens to
+		// be running on that node...
+		// If the elector node is THIS node, we are already up to date
+		if (_cfg._cluster_maintenance != hb->_cluster_maintenance) {
+			_cfg._cluster_maintenance = hb->_cluster_maintenance;
+			LOG_INFO("Maintenance mode: %s", (hb->_cluster_maintenance ? "ON" : "OFF"));
 		}
 		if (changed) {
 			_on_state_change(this);

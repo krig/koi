@@ -113,7 +113,6 @@ namespace koi {
 			virtual ~stateupdate() {}
 
 			uint64_t _uptime;
-			bool _maintenance;
 
 			// master node information
 			uuid _master_uuid;
@@ -212,6 +211,7 @@ namespace koi {
 			nodes _nodes;
 			uuid _elector;
 			uuid _master;
+			bool _cluster_maintenance;
 		};
 
 #define MessageBodyMethods(id, cls)	  \

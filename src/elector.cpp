@@ -698,7 +698,6 @@ namespace koi {
 		m->_seqnr = _emitter._current_tick;
 
 		su->_uptime = _emitter.uptime(_leadertime);
-		su->_maintenance = _emitter._nexus.cfg()._cluster_maintenance;
 
 		if (_master != _runners.end()) {
 			su->_master_uuid = _master->second._uuid;
