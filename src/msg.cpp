@@ -540,7 +540,7 @@ namespace koi {
 
 				r >> msg->_version;
 				if (msg->_version != koi::version)
-					throw msg_error("Version mismatch: our (%d) != msg (%d)", koi::version, version);
+					throw msg_error("Version mismatch: our (%d) != msg (%d)", koi::version, msg->_version);
 
 				r >> msg->_seqnr;
 
