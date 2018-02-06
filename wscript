@@ -100,7 +100,7 @@ def configure(conf):
 
         try:
             conf.check_boost(lib=['system', 'regex', 'program_options', 'date_time'],
-                             mt=True, static=False)
+                             mt=True, stlib=False)
         except conf.errors.WafError, e:
             Logs.warn('boost 1.49+ required: see http://boost.org')
             raise e
