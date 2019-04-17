@@ -118,7 +118,7 @@ namespace koi {
 		};
 
 		typedef std::map<string, service> services;
-
+		static const size_t TERMINATE_TIMEOUT;
 
 		void init(const char* servicesdir, const char* workingdir);
 		~service_manager();

@@ -68,6 +68,7 @@ namespace {
 
 namespace koi {
 	const int service_manager::service::NO_PRIORITY = -1;
+	const size_t service_manager::TERMINATE_TIMEOUT = 1000*1000; // usecs
 
 	void service_manager::init(const char* servicesdir, const char* workingdir) {
 		LOG_TRACE("Initializing service manager with service folder: %s, working dir: %s.",
@@ -329,7 +330,7 @@ namespace koi {
 						string t = to_simple_string(now - s._running.started_at);
 						LOG_WARN("Command '%s' timed out after %s", s._event->_name.c_str(),
 						         t.c_str());
-						s._running.termkill(1000*1000);
+						s._running.termkill(TERMINATE_TIMEOUT);
 						s.report_timeout();
 						s.unrun();
 						allwell = false;
@@ -407,8 +408,8 @@ namespace koi {
 				FOREACH(auto& svc, _services) {
 					service& s = svc.second;
 					if (s._running.is_active()) {
-						LOG_ERROR("Timeout: SIGKILLing shutdown process: %s", s._event->_name.c_str());
-						s._running.kill(SIGKILL);
+						LOG_ERROR("Timeout: SIGTERMing shutdown process: %s", s._event->_name.c_str());
+						s._running.termkill(TERMINATE_TIMEOUT);
 					}
 					if (s._state > Svc_Stopped) {
 						LOG_ERROR("Timeout: service still active: %s", s._path.c_str());
@@ -515,7 +516,7 @@ namespace koi {
 					LOG_WARN("Command '%s' timeout after: %s",
 					         s._event->_name.c_str(),
 					         t.c_str());
-					s._running.kill(SIGKILL);
+					s._running.termkill(TERMINATE_TIMEOUT);
 					s.unrun();
 					_service_failed(s);
 					return false;
@@ -526,13 +527,11 @@ namespace koi {
 				case Svc_Fail: {
 					if (s._state == Svc_Starting) {
 						LOG_WARN("Overriding starting transition to stop immediately: %s", s._name.c_str());
-						s._running.kill(SIGKILL);
+						s._running.termkill(TERMINATE_TIMEOUT);
 						s.unrun();
-						if (s._state == Svc_Starting) {
-							s.transition(Svc_Started);
-							LOG_WARN("Forcing stop");
-							s.stop(_logproxy.inpipe);
-						}
+						s.transition(Svc_Started);
+						LOG_WARN("Forcing stop");
+						s.stop(_logproxy.inpipe);
 					}
 				} break;
 				default: break;
@@ -892,7 +891,7 @@ namespace koi {
 			               _event->_name == "promote" ||
 			               _event->_name == "status")) {
 				LOG_WARN("%s:stop(): aborting running action: %s", _name.c_str(), _event->_name.c_str());
-				_running.kill(SIGKILL);
+				_running.termkill(TERMINATE_TIMEOUT);
 			}
 			else
 				return true; // defer action
