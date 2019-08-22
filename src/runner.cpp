@@ -301,15 +301,20 @@ namespace koi {
 			_sequence.set(m._sender_uuid, m._seqnr);
 		}
 
-		if (_elector._uuid == m._sender_uuid && // same node
-		    !_sequence.check(_elector._uuid, m._seqnr)) { // out of order
-			LOG_WARN("State update out of sequence: %d", (int)m._seqnr);
-			return;
+		const auto su = m.body<msg::stateupdate>();
+		if (_elector._uuid == m._sender_uuid) { // same node
+                        if ((int64_t)(su->_uptime - _elector._uptime) < 0) { // elector restarted
+                                LOG_WARN("Elector was restarted");
+                                _sequence.set(m._sender_uuid, m._seqnr);
+                        }
+                        else if (!_sequence.check(_elector._uuid, m._seqnr)) { // out of order
+		                LOG_WARN("State update out of sequence: %d", (int)m._seqnr);
+		                return;
+                        }
 		}
 
 		_elector._uuid = m._sender_uuid;
 		_elector._last_seen = microsec_clock::universal_time();
-		const auto su = m.body<msg::stateupdate>();
 		_elector._master_uuid = su->_master_uuid;
 		_elector._uptime = su->_uptime;
 
