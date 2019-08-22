@@ -322,6 +322,7 @@ namespace koi {
 		bool allwell = true;
 		for (auto i = _services.begin(); i != _services.end(); ++i) {
 			service& s = i->second;
+			bool spawned_action;
 			if (s._running.is_active()) {
 				if (!s._running.query_complete()) {
 					LOG_TRACE("%s:%s is blocking status check...", s._name.c_str(), s._event->_name.c_str());
@@ -336,9 +337,11 @@ namespace koi {
 						allwell = false;
 					}
 				}
-				else if (check_exitcode(s)) {
-					s.unrun();
-					s.status(_logproxy.inpipe);
+				else if (check_exitcode(s, spawned_action)) {
+					if (!spawned_action) {
+						s.unrun();
+						s.status(_logproxy.inpipe);
+					}
 				}
 				else {
 					_service_failed(s);
@@ -440,7 +443,8 @@ namespace koi {
 		} while (!empty_loop || !at_target_state);
 	}
 
-	bool service_manager::check_exitcode(service& s) {
+	bool service_manager::check_exitcode(service& s, bool& spawned_action) {
+		spawned_action = false;
 		if (_is_masterslave_status(s)) {
 			s._promotable = (s._state >= Svc_Started &&
 			                 (s._running.exitcode == EC_Slave ||
@@ -450,6 +454,7 @@ namespace koi {
 				          s._name.c_str(),
 				          service_state_string(s._state),
 				          service_action_string(_target_action));
+				spawned_action = true;
 				return _update_service_state(s);
 			}
 			return true;
@@ -491,14 +496,17 @@ namespace koi {
 	bool service_manager::complete_transition(ptime now, service& s) {
 		if (s._running.is_active()) {
 			if (s._running.query_complete()) {
-				if (check_exitcode(s)) {
-					const string t = to_simple_string(now - s._running.started_at);
-					LOG_TRACE("%s:%s OK (time: %s).",
-					          s._name.c_str(),
-					          s._event->_name.c_str(),
-					          t.c_str());
-					s.unrun();
-					s.complete_transition();
+				bool spawned_action;
+				if (check_exitcode(s, spawned_action)) {
+					if (!spawned_action) {
+						const string t = to_simple_string(now - s._running.started_at);
+						LOG_TRACE("%s:%s OK (time: %s).",
+						          s._name.c_str(),
+						          s._event->_name.c_str(),
+						          t.c_str());
+						s.unrun();
+						s.complete_transition();
+					}
 				}
 				else {
 					LOG_TRACE("%s:%s failed, exitcode: %d",
@@ -615,8 +623,11 @@ namespace koi {
 			return complete_transition(now, s);
 		}
 		else if (s._running.is_active() && s._running.query_complete()) {
-			if (check_exitcode(s)) {
-				s.unrun();
+			bool spawned_action;
+			if (check_exitcode(s, spawned_action)) {
+				if (!spawned_action) {
+					s.unrun();
+				}
 			}
 			else {
 				LOG_TRACE("Command complete, returned: %d", s._running.exitcode);

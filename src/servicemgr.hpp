@@ -168,7 +168,7 @@ namespace koi {
 		void wait_for_demote(bool maintenance_mode);
 		void wait_for_stop(bool maintenance_mode);
 		bool complete_transition(ptime now, service& s);
-		bool check_exitcode(service& s);
+		bool check_exitcode(service& s, bool& spawned_action);
 		void toggle_logproxy();
 		bool is_disabled();
 
