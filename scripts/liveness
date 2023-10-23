@@ -41,20 +41,19 @@ demote() {
 }
 
 status() {
-	if [[ -f liveness-syncing ]]; then
+	R=$(awk 'BEGIN { srand(); print int(rand()*32768) }' /dev/null)
+	if [ -f liveness-syncing ]; then
 		echo "syncing"
-		let R=$RANDOM%6
-		if [ "$R" -eq "0" ]; then
+		if [ $R -eq 0 ]; then
 			echo "Syncing almost complete!"
 			rm -f liveness-syncing
 		fi
 		exit $KOI_LIVE
-	elif [[ -f liveness-master ]]; then
+	elif [ -f liveness-master ]; then
 		echo "master"
 		exit $KOI_MASTER
 	else
-		let R=$RANDOM%6
-		if [ "$R" -eq "0" ]; then
+		if [ $R -eq 0 ]; then
 			echo "Out of sync!"
 			touch liveness-syncing
 			exit $KOI_LIVE
